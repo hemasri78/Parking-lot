@@ -1,10 +1,12 @@
 from fastapi import FastAPI
-import lotcreate,getall_slot,issueticket,unpark
-import models
+from router import lotcreate, getAllSlot, issueticket, unpark
+from models import parkingLot, parkingSlot, parkingTicket
 from database import engine
 
 app=FastAPI()
-models.Base.metadata.create_all(engine)
+parkingLot.Base.metadata.create_all(engine)
+parkingSlot.Base.metadata.create_all(engine)
+parkingTicket.Base.metadata.create_all(engine)
 
 
 @app.get('/')
@@ -12,6 +14,6 @@ async def root():
     return {"helo world"}
 
 app.include_router(lotcreate.router)
-app.include_router(getall_slot.router)
+app.include_router(getAllSlot.router)
 app.include_router(issueticket.router)
 app.include_router(unpark.router)

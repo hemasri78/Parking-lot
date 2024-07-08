@@ -1,24 +1,20 @@
 from datetime import datetime
-from fastapi import APIRouter, HTTPException,Depends,status
-import schemas,models,database
+from fastapi import HTTPException,status
+import database
 from sqlalchemy.orm import Session
+from schemas.request.unparking import UnparkingRequest
+from models.parkingTicket import ParkingTicket
+from models.parkingSlot import ParkingSlot
 
-router=APIRouter(
-    prefix='/api/parking_lot',
-    tags=["parking_lot"]
-)
 get_db=database.get_db
 
-@router.post("/api/parking_lot/unpark", response_model=schemas.ReturnTicketResponse)
-def unpark_vehicle(unparking_data: schemas.UnparkingRequest, db: Session = Depends(get_db)):
-    
-    #parkingServices.unpark(unparking_data)
+def unparkVehicles(unparking_data: UnparkingRequest, db: Session):
 
     ticket_id = unparking_data.ticket_id
 
-    parking_ticket = db.query(models.ParkingTicket).filter(
-        models.ParkingTicket.ticket_id == ticket_id,
-        models.ParkingTicket.out_time==None).first()
+    parking_ticket = db.query(ParkingTicket).filter(
+        ParkingTicket.ticket_id == ticket_id,
+        ParkingTicket.out_time==None).first()
     
     if not parking_ticket:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Ticket not found")
@@ -26,7 +22,7 @@ def unpark_vehicle(unparking_data: schemas.UnparkingRequest, db: Session = Depen
     if parking_ticket.out_time is not None:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Vehicle already unparked")
     
-    parking_slot = db.query(models.ParkingSlot).filter(models.ParkingSlot.slot_id == parking_ticket.slot_id).first()
+    parking_slot = db.query(ParkingSlot).filter(ParkingSlot.slot_id == parking_ticket.slot_id).first()
     if parking_slot:
         parking_slot.status = 'free'
     
